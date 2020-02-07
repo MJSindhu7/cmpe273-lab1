@@ -1,13 +1,15 @@
 import os
-def read_data():
-    data = []
-    for i in range(1,11):
-        with open("/Users/sindhuram/Documents/Mine/SJSU/Sem3/273-Sithu/Lab1/MyLab1/input/unsorted_{}.txt".format(i)) as f:
-            for i in f:
-                data.append(i)
-            data1=[int(x) for x in data]
-    return data1
+import heapq
+import asyncio
 
+
+def read_data(file):
+    data1 = []
+    with open(file) as f:
+        for i in f:
+            data1.append(int(i))
+        data1=[int(x) for x in data1]
+    return data1
 
 def partition(arr,low,high):
     i = low-1
@@ -26,13 +28,40 @@ def qsort(arr, low, high):
         qsort(arr, pi+1, high)
     pass
 
-def write(result,m):
-        with open("/Users/sindhuram/Documents/Mine/SJSU/Sem3/273-Sithu/Lab1/MyLab1/output/sorted.txt",m)as ff:
-                for obj in result:
-                        ff.write('%s\n' % obj)
-def sort():
-    x = read_data()
-    qsort(x, 0, len(x)-1)
-    write(x,'w')
-    print(len(x))
-sort()
+def write_ind_files(file, sort_list):
+    with open(file, 'w') as f:
+        for i in sort_list:
+            f.write('%s\n' % i)
+
+def write(value):
+        with open("/Users/sindhuram/Documents/Mine/SJSU/Sem3/273-Sithu/Lab1/MyLab1/output/async_sorted.txt",'w')as ff:
+            ff.write(str(value) + "\n")
+
+def sort(i):
+    data = []
+    data = read_data("/Users/sindhuram/Documents/Mine/SJSU/Sem3/273-Sithu/Lab1/MyLab1/input/unsorted_{}.txt".format(i))
+    qsort(data, 0, len(data)-1)
+    write_ind_files("/Users/sindhuram/Documents/Mine/SJSU/Sem3/273-Sithu/Lab1/MyLab1/output/sorted_{}.txt".format(i), data)
+
+def combine():
+    sort_files = []
+    for i in range(1,11):
+        sort_files.append(open("/Users/sindhuram/Documents/Mine/SJSU/Sem3/273-Sithu/Lab1/MyLab1/output/sorted_{}.txt".format(i), 'r'))
+    heap = [(int(sort_files[file].readline().strip()), file) for file in range(len(sort_files))]
+    
+    heapq.heapify(heap)
+    while heap:
+        small, file = heapq.heappop(heap)
+        write(small)
+
+        value = sort_files[file].readline()
+        if value:
+            heapq.heappush(heap, (int(value.strip()), file))
+
+
+def main():
+    for i in range(1,11):
+        sort(i)
+        combine()
+        
+main()
